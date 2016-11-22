@@ -2,6 +2,16 @@ import os
 import nltk
 import nltk.tokenize
 import ngrammodeler as NG
+import pickle
+
+def saveObj(obj, name):
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def loadObj(name):
+    with open(name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
 
 def posParseArticle(article):
     taggedArticle = []
@@ -44,13 +54,43 @@ def getFakeGood(labelsFileName):
         labels.append(int(line))
     return labels
 
-def main():
+def posParseArticles(articles, name):
     parsedArticles = []
-    articles = importArticles('trainingSet.dat')
-    labels = getFakeGood('trainingSetLabels.dat')
     for article in articles:
         posParsedArticle = posParseArticle(article)
         parsedArticles.append(posParsedArticle)
-    trigramModeler = NG.NgramModeler(parsedArticles)
-#    trigrams = trigramModeler.trigramCounts
+    saveObj(parsedArticles, name)
+    return parsedArticles
+
+def computeLogLikelihood(article):
+    pass
+
+
+def main():
+    goodArticles = []
+    badArticles = []
+    articles = importArticles('trainingSet.dat')
+    labels = getFakeGood('trainingSetLabels.dat')
+    i = 0
+    for label in labels:
+        if label == 1:
+            goodArticles.append(articles[i])
+        if label == 0:
+            badArticles.append(articles[i])
+        i = i + 1
+    # uncomment the next if you want to pos parse the articles again, otherwise it just loads the last parse
+    #parsedGoodArticles = posParseArticles(goodArticles, 'posgoodarticles')
+    #parsedBadArticles = posParseArticles(badArticles, 'posbadarticles')
+    parsedGoodArticles = loadObj('posgoodarticles')
+    trigramModeler = NG.NgramModeler(parsedGoodArticles)
+    for article in parsedGoodArticles:
+        llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
+        print(llArticle)
+    parsedBadArticles = loadObj('posbadarticles')
+    print("Bad Articles")
+    print
+    for article in parsedBadArticles:
+        llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
+        print(llArticle)
+
 if __name__ == "__main__": main()

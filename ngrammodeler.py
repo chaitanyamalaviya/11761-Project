@@ -16,73 +16,122 @@ logging.basicConfig(level=logging.INFO, format=FORMAT)
 class NgramModeler:
     def __init__(self, articles):
         self.articles = articles
-        self.trigramCounts = self.getTrigramsCount(articles)
+        self.trigramCounts = self.getNgramsCount(articles, 3)
+        self.bigramCounts = self.getNgramsCount(articles, 2)
+        self.unigramCounts = self.getNgramsCount(articles, 1)
+        self.unigramProbabilities = self.computeUnigramsProbs()
+        self.bigramProbabilities = self.computeBigramsProbs()
+        self.trigramProbabilities = self.computeTrigramsProbs()
+        self.l1 = 0.5
+        self.l2 = 0.4
+        self.l3 = 0.09
+        self.l0 = 0.01
 
-    def getTrigramsCount(self, articles):
+    def getNgramsCount(self, articles,n):
         """
         Return the count for all the trigrams in the set of articles given as an argument
         :param articles:
         :return:
         """
         counterList = []
-        trigramsCounter = Counter(counterList)
+        ngramsCounter = Counter(counterList)
         for article in articles:
-            articleTrigrams = self.getArticleTrigrams(article)
-            trigramsCounter = trigramsCounter + articleTrigrams
-        return trigramsCounter
+            articleNgrams = self.getArticleNgrams(article, n)
+            ngramsCounter = ngramsCounter + articleNgrams
+        return ngramsCounter
 
-    def getArticleTrigrams(self, article):
+    def getArticleNgrams(self, article, n):
         """
         Given a list of sentences, which make an article, returns the trigrams for the article
         :param article:
         :return:
         """
         counterList = []
-        trigramsCounter = Counter(counterList)
+        ngramsCounter = Counter(counterList)
         for sentence in article:
-            sentence = "<s> <s> " + sentence + "</s>"
-            sentenceAsList = sentence.split()
-            sentenceTrigrams = self.findNgrams(sentenceAsList, 3)
-            trigramsCounter = trigramsCounter + Counter(sentenceTrigrams)
-        return trigramsCounter
+            sentence.append('</s>')
+            for i in range(n-1):
+                sentence.insert(0, '<s>')
+            sentenceNgrams = self.findNgrams(sentence, n)
+            ngramsCounter = ngramsCounter + Counter(sentenceNgrams)
+            for i in range(n-1):
+                del sentence[0]
+            sentence.pop()
+        return ngramsCounter
 
     def findNgrams(self, sequenceAsList, n):
         return zip(*[sequenceAsList[i:] for i in range(n)])
 
+    def computeTrigramsProbs(self):
+        trigramProbabilities = {}
+        trigrams = self.trigramCounts
+        bigrams = self.bigramCounts
+        for trigram in trigrams:
+            bigram = (trigram[0], trigram[1])
+            if bigram == ('<s>', '<s>'):
+                bigram = (trigram[1], trigram[2])
+            trigramProb = float(trigrams[trigram]) / bigrams[bigram]
+            trigramProbabilities[trigram] = trigramProb
+        return trigramProbabilities
 
-    def statesProbabilities(self):
-        bigramsProb = {}
-        statesProbs = {}
-        unigramsProb = {}
-        interpolatedProbs = {}
-        bigramsList = self.statesBigrams
-        unigramsList = self.statesUnigrams
+    def computeBigramsProbs(self):
+        bigramProbabilities = {}
+        bigrams = self.bigramCounts
+        unigrams = self.unigramCounts
+        for bigram in bigrams:
+            unigram = (bigram[0])
+            if unigram == '<s>':
+                unigram = (bigram[1])
+            try:
+                bigramProb = float(bigrams[bigram]) / unigrams[(unigram,)]
+            except:
+                print(bigram)
+            bigramProbabilities[bigram] = bigramProb
+        return bigramProbabilities
 
-        bigramsCounter = Counter(bigramsList)
-        unigramsCounter = Counter(unigramsList)
-        bigramTypes = bigramsCounter.keys()
-        unigramTypes = unigramsCounter.keys()
-        self.statesList = unigramTypes
-        numberOfStates = len(unigramTypes)
+    def computeUnigramsProbs(self):
+        unigramProbabilities = {}
+        unigrams = self.unigramCounts
+        N = sum(self.unigramCounts.values())
+        for unigram in unigrams:
+            unigramProb = float(unigrams[unigram]) / N
+            unigramProbabilities[unigram] = unigramProb
+        return unigramProbabilities
 
-        # In the slides A has size N+1 x N+1 as it starts counting from 0 to N. In this case N=(numberOfStates-1)
-        # because the matrix A starts its indexes also from 0 but up until (numberOfStates-1)
-        A = np.zeros([numberOfStates,numberOfStates])
+    def smoothedProbability(self, trigram):
+        l0 = self.l0
+        l1 = self.l1
+        l2 = self.l2
+        l3 = self.l3
+        uniformProb = len(self.unigramProbabilities)
+        unigram = trigram[2]
+        bigram = (trigram[1], trigram[2])
+        try:
+            trigramProb = self.trigramProbabilities[trigram]
+        except:
+            trigramProb = 0.0
+        try:
+            bigramProb = self.bigramProbabilities[bigram]
+        except:
+            bigramProb = 0.0
+        try:
+            unigramProb = self.unigramProbabilities[(unigram,)]
+        except:
+            unigramProb = 0.0
+        smoothedProbability = l1*trigramProb+l2*bigramProb+l3*unigramProb+l0*(1.0/uniformProb)
+        return(smoothedProbability)
 
-        # for unigram in unigramTypes:
-        #     unigramProb = float(unigramsCounter[unigram])/len(unigramsList)
-        #     unigramsProb[unigram] = unigramProb
-
-        for bigram in bigramTypes:
-            unigram = bigram[0]
-            previousState = unigramTypes.index(unigram)
-            currentState = unigramTypes.index(bigram[1])
-            # The following is the probability of moving from previousState to currentState
-            bigramProb = float(bigramsCounter[bigram]) / unigramsCounter[unigram]
-            A[previousState][currentState] = bigramProb
-            # if state not in statesProbs:
-            #     statesProbs[state] = defaultdict(int)
-            # statesProbs[state][unigram] = bigramProb
-            #bigramsProb[bigram] = bigramProb
-        #return bigramsProb
-        return A
+    def computeAverageArticleLogLikelihood(self, article):
+        sentencesLL = []
+        for sentence in article:
+            ll = 0
+            sentence.append('</s>')
+            for i in range(2):
+                sentence.insert(0, '<s>')
+            trigrams = self.findNgrams(sentence, 3)
+            for trigram in trigrams:
+                probability = math.log(self.smoothedProbability(trigram))
+                ll = ll + probability
+            sentencesLL.append(float(ll))
+        averageLL = np.mean(sentencesLL)
+        return averageLL
