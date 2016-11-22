@@ -1,13 +1,15 @@
 import os
 import nltk
 import nltk.tokenize
+import ngrammodeler as NG
 
 def posParseArticle(article):
     taggedArticle = []
     for sentence in article:
+        sentence = sentence.lower()
         text = nltk.word_tokenize(sentence)
         posTaggedSentence = nltk.pos_tag(text)
-        #posTaggedSentence = [tag[1] for tag in posTaggedSentence]
+        posTaggedSentence = [tag[1] for tag in posTaggedSentence]
         taggedArticle.append(posTaggedSentence)
     return taggedArticle
 
@@ -43,8 +45,12 @@ def getFakeGood(labelsFileName):
     return labels
 
 def main():
+    parsedArticles = []
     articles = importArticles('trainingSet.dat')
     labels = getFakeGood('trainingSetLabels.dat')
     for article in articles:
         posParsedArticle = posParseArticle(article)
+        parsedArticles.append(posParsedArticle)
+    trigramModeler = NG.NgramModeler(parsedArticles)
+#    trigrams = trigramModeler.trigramCounts
 if __name__ == "__main__": main()
