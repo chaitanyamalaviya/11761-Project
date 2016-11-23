@@ -22,9 +22,9 @@ class NgramModeler:
         self.unigramProbabilities = self.computeUnigramsProbs()
         self.bigramProbabilities = self.computeBigramsProbs()
         self.trigramProbabilities = self.computeTrigramsProbs()
-        self.l1 = 0.5
-        self.l2 = 0.4
-        self.l3 = 0.09
+        self.l1 = 0.9
+        self.l2 = 0.05
+        self.l3 = 0.04
         self.l0 = 0.01
 
     def getNgramsCount(self, articles,n):
@@ -135,3 +135,6 @@ class NgramModeler:
             sentencesLL.append(float(ll))
         averageLL = np.mean(sentencesLL)
         return averageLL
+
+    def getTopNgrams(self, n):
+        return self.trigramCounts.most_common(n)

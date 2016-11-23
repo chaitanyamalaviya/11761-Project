@@ -1,8 +1,14 @@
 import os
 import nltk
 import nltk.tokenize
+from nltk.parse import stanford
 import ngrammodeler as NG
 import pickle
+
+os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+
+parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
 
 def saveObj(obj, name):
     with open(name + '.pkl', 'wb') as f:
@@ -71,26 +77,49 @@ def main():
     badArticles = []
     articles = importArticles('trainingSet.dat')
     labels = getFakeGood('trainingSetLabels.dat')
+    fg = open('goodArticles.txt', 'w')
+    fb = open('badArticles.txt', 'w')
     i = 0
     for label in labels:
         if label == 1:
             goodArticles.append(articles[i])
+            articleScores = parser.raw_parse_sents_PCFG(articles[i])
+            sum = 0
+            for a in articleScores:
+                a = float(a)
+                sum = sum + a
+            averageScore = sum/len(articleScores)
+            fg.write("%s, %s, %f\n" % (articles[i], articleScores, averageScore))
         if label == 0:
             badArticles.append(articles[i])
+            articleScores = parser.raw_parse_sents_PCFG(articles[i])
+            sum = 0
+            for a in articleScores:
+                a = float(a)
+                sum = sum + a
+            averageScore = sum / len(articleScores)
+            fb.write("%s, %s, %f\n" % (articles[i], articleScores, averageScore))
         i = i + 1
+    fg.close()
+    fb.close()
     # uncomment the next if you want to pos parse the articles again, otherwise it just loads the last parse
     #parsedGoodArticles = posParseArticles(goodArticles, 'posgoodarticles')
     #parsedBadArticles = posParseArticles(badArticles, 'posbadarticles')
     parsedGoodArticles = loadObj('posgoodarticles')
-    trigramModeler = NG.NgramModeler(parsedGoodArticles)
-    for article in parsedGoodArticles:
-        llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
-        print(llArticle)
     parsedBadArticles = loadObj('posbadarticles')
-    print("Bad Articles")
-    print
-    for article in parsedBadArticles:
-        llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
-        print(llArticle)
+    trigramModeler = NG.NgramModeler(parsedGoodArticles)
+    trigramModeler2 = NG.NgramModeler(parsedBadArticles)
+    # print(set([a[0] for a in trigramModeler.getTopNgrams(20)])-set([a[0] for a in trigramModeler2.getTopNgrams(20)]))
+    # print(set([a[0] for a in trigramModeler2.getTopNgrams(20)])-set([a[0] for a in trigramModeler.getTopNgrams(20)]))
+    # for article in parsedGoodArticles:
+    #     llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
+    #     print(llArticle)
+    # parsedBadArticles = loadObj('posbadarticles')
+    # print("Bad Articles")
+    # print
+    # for article in parsedBadArticles:
+    #     print(article)
+    #     llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
+    #     print(llArticle)
 
 if __name__ == "__main__": main()
