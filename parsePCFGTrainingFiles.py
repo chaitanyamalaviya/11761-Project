@@ -1,6 +1,7 @@
 from __future__ import division
 import os
 import re
+import sys
 import nltk
 import nltk.tokenize
 from nltk.parse import stanford
@@ -24,49 +25,13 @@ def importScores(fileName):
             scoresList.append(scores)
     return articlesList, scoresList
 
-def main():
-    goodArticles, goodScores = importScores('goodArticles.txt')
-    badArticles, badScores = importScores('badArticles.txt')
 
-    # maxMinScores = []
-    # for j in range(len(badArticles)):
-    #     print(min(badScores[j]))
-    #     for i in range(len(badArticles[j])):
-    #         if len(badArticles[j][i].split()) >= 6 and len(badArticles[j][i].split()) <= 10:
-    #             maxMinScores.append(min(badScores[j]))
-    # print
-    # print
-    # minMaxScores = []
+def computeArticlesAverageScore(articles, scores):
     count = 0
-    avAverage =0
-    for j in range(len(goodArticles)):
-        articleAvg = []
-#         for i in range(len(goodArticles[j])):
-# #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
-#             if len(goodArticles[j][i].split()) >= 1:
-#                 sentenceScore = goodScores[j][i]/float(len(goodArticles[j][i].split()))
-#                 articleAvg.append(sentenceScore)
-#         average = sum(articleAvg)/len(goodArticles[j])
-#         print(average)
-        length = 0
-        for i in range(len(goodArticles[j])):
-            #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
-            if len(goodArticles[j][i].split()) >= 3:
-                length = length + len(goodArticles[j][i].split())
-                sentenceScore = goodScores[j][i] * len(goodArticles[j][i].split())
-                articleAvg.append(sentenceScore)
-        average = sum(articleAvg) / length
-        avAverage = avAverage + average
-        if average <= -325:
-            count = count +1
-        print("Good Article: %d, average: %f" % (j, average))
-    print("Number of articles wil score less than -350: %d" % count)
-    print("Average on all good articles: %f" % (avAverage/500.0))
-    print
-    print
-    count = 0
-    avAverage =0
-    for j in range(len(badArticles)):
+    avAverage = 0
+    threshold = -325
+    skipped = 3
+    for j in range(len(articles)):
         articleAvg = []
         #         for i in range(len(goodArticles[j])):
         # #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
@@ -76,38 +41,37 @@ def main():
         #         average = sum(articleAvg)/len(goodArticles[j])
         #         print(average)
         length = 0
-        for i in range(len(badArticles[j])):
+        for i in range(len(articles[j])):
             #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
-            if len(badArticles[j][i].split()) >= 3:
-                length = length + len(badArticles[j][i].split())
-                sentenceScore = badScores[j][i] * len(badArticles[j][i].split())
+            if len(articles[j][i].split()) >= skipped:
+                length = length + len(articles[j][i].split())
+                sentenceScore = scores[j][i] * len(articles[j][i].split())
                 articleAvg.append(sentenceScore)
         average = sum(articleAvg) / length
         avAverage = avAverage + average
-        if average <= -325:
-            count = count +1
-        print("Bad Article: %d, average: %f" % (j, average))
-    print("Number of articles wil score less than -350: %d" % count)
-    print("Average on all bad articles: %f" % (avAverage / 500.0))
+        if average <= threshold:
+            count = count + 1
+#        print("Good Article: %d, average: %f" % (j, average))
+    print("Number of articles with score less than %d: %d" % (threshold, count))
+    print("Average on all articles: %f" % (avAverage / 500.0))
 
-            # print
-    # print
-    #
-    # for j in range(len(badArticles)):
-    #     articleAvg = []
-    #     for i in range(len(badArticles[j])):
-    #         #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
-    #         if len(badArticles[j][i].split()) >= 1:
-    #             sentenceScore = badScores[j][i] / float(len(badArticles[j][i].split()))
-    #             articleAvg.append(sentenceScore)
-    #     average = sum(articleAvg) / len(badArticles[j])
-    #     print(average)
-        # if average < 14.0:
-        #     print(badArticles[j])
-        #    print("%f %f" % (max(maxMinScores), min(minMaxScores)))
-        # for i in range(len(badArticles[j])):
-        #     if len(badArticles[j][i].split())>=7:
-        #         print(badScores[j][i])
-        #         if badScores[j][i] > -100:
-        #             print(badArticles[j][i])
+
+def main():
+    path = os.getcwd()
+    numberOfArguments = len(sys.argv)
+    if (numberOfArguments != 3):
+        print("This command takes two arguments, which are the bad and the good articles file names.")
+        exit()
+    else:
+        goodArticlesFileName = sys.argv[1]
+        goodArticlesFilePath = path+'/'+goodArticlesFileName
+        badArticlesFileName = sys.argv[2]
+        badArticlesFilePath = path+'/'+badArticlesFileName
+
+    goodArticles, goodScores = importScores(goodArticlesFileName)
+    badArticles, badScores = importScores(badArticlesFileName)
+
+    computeArticlesAverageScore(goodArticles, goodScores)
+    computeArticlesAverageScore(badArticles, badScores)
+
 if __name__ == "__main__": main()
