@@ -132,7 +132,7 @@ class NgramModeler:
             for trigram in trigrams:
                 probability = math.log(self.smoothedProbability(trigram))
                 ll = ll + probability
-            sentencesLL.append(float(ll))
+            sentencesLL.append(float(ll)/len(sentence))
         averageLL = np.mean(sentencesLL)
         return averageLL
 
