@@ -108,7 +108,7 @@ def main():
     #parsedCorpus = loadObj('corpusPosTagged')
     articles = importArticles('trainingSet.dat')
     labels = getFakeGood('trainingSetLabels.dat')
-    
+
     # fg = open('goodArticles.txt', 'w')
     # fb = open('badArticles.txt', 'w')
     # i = 0
@@ -137,26 +137,26 @@ def main():
     # uncomment the next if you want to pos parse the articles again, otherwise it just loads the last parse
     #parsedGoodArticles = posParseArticles(goodArticles, 'posgoodarticles')
     #parsedBadArticles = posParseArticles(badArticles, 'posbadarticles')
-    parsedGoodArticles = loadObj('posgoodarticles')
-    parsedBadArticles = loadObj('posbadarticles')
-    trigramModeler = NG.NgramModeler(parsedGoodArticles)
-    trigramModeler2 = NG.NgramModeler(parsedBadArticles)
+    # parsedGoodArticles = loadObj('posgoodarticles')
+    # parsedBadArticles = loadObj('posbadarticles')
+    # trigramModeler = NG.NgramModeler(parsedGoodArticles)
+    # trigramModeler2 = NG.NgramModeler(parsedBadArticles)
     # print(set([a[0] for a in trigramModeler.getTopNgrams(20)])-set([a[0] for a in trigramModeler2.getTopNgrams(20)]))
     # print(set([a[0] for a in trigramModeler2.getTopNgrams(20)])-set([a[0] for a in trigramModeler.getTopNgrams(20)]))
-    y1 = []
-    for article in parsedGoodArticles:
-        llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
-        y1.append(llArticle)
-        print(llArticle)
-    print(len(y1))
-    PF.plotLL(y1,y1)
-
-    parsedBadArticles = loadObj('posbadarticles')
-    print("Bad Articles")
-    print
-    for article in parsedBadArticles:
-        #print(article)
-        llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
-        print(llArticle)
+    # y1 = []
+    # for article in parsedGoodArticles:
+    #     llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
+    #     y1.append(llArticle)
+    #     print(llArticle)
+    # print(len(y1))
+    # PF.plotLL(y1,y1)
+    #
+    # parsedBadArticles = loadObj('posbadarticles')
+    # print("Bad Articles")
+    # print
+    # for article in parsedBadArticles:
+    #     #print(article)
+    #     llArticle = trigramModeler.computeAverageArticleLogLikelihood(article)
+    #     print(llArticle)
 
 if __name__ == "__main__": main()
