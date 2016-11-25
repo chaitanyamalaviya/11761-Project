@@ -26,10 +26,9 @@ def importScores(fileName):
     return articlesList, scoresList
 
 
-def computeArticlesAverageScore(articles, scores):
+def computeArticlesAverageScore(articles, scores, threshold):
     count = 0
     avAverage = 0
-    threshold = -325
     skipped = 3
     for j in range(len(articles)):
         articleAvg = []
@@ -53,25 +52,26 @@ def computeArticlesAverageScore(articles, scores):
             count = count + 1
 #        print("Good Article: %d, average: %f" % (j, average))
     print("Number of articles with score less than %d: %d" % (threshold, count))
-    print("Average on all articles: %f" % (avAverage / 500.0))
+    print("Average on all articles: %f" % (avAverage / len(articles)))
 
 
 def main():
     path = os.getcwd()
     numberOfArguments = len(sys.argv)
-    if (numberOfArguments != 3):
-        print("This command takes two arguments, which are the bad and the good articles file names.")
+    if (numberOfArguments != 4  ):
+        print("This command takes three arguments, which are the bad and the good articles file names and the threshold.")
         exit()
     else:
         goodArticlesFileName = sys.argv[1]
         goodArticlesFilePath = path+'/'+goodArticlesFileName
         badArticlesFileName = sys.argv[2]
         badArticlesFilePath = path+'/'+badArticlesFileName
+        threshold = int(sys.argv[3])
 
     goodArticles, goodScores = importScores(goodArticlesFileName)
     badArticles, badScores = importScores(badArticlesFileName)
 
-    computeArticlesAverageScore(goodArticles, goodScores)
-    computeArticlesAverageScore(badArticles, badScores)
+    computeArticlesAverageScore(goodArticles, goodScores, threshold)
+    computeArticlesAverageScore(badArticles, badScores, threshold)
 
 if __name__ == "__main__": main()
