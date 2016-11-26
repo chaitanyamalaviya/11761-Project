@@ -61,7 +61,7 @@ def getNumberOfStopwords(article):
     return float(sumStop)/sumLength
 
 
-def createStopwordsFeature(devFileName):
+def getFeature(devFileName):
     articles = importArticles(devFileName)
     featureLength = len(articles)
     featureArray = np.zeros([featureLength,1], dtype=float)
@@ -78,7 +78,7 @@ def main():
     badArticles = []
     articles = importArticles('trainingSet.dat')
     labels = getFakeGood('trainingSetLabels.dat')
-    createStopwordsFeature('trainingSet.dat')
+    getFeature('trainingSet.dat')
     i = 0
     for label in labels:
         if label == 1:
