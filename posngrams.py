@@ -5,6 +5,7 @@ from nltk.parse import stanford
 import ngrammodeler as NG
 import pickle
 import plotFunctions as PF
+import numpy as np
 
 os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
 os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
@@ -195,6 +196,30 @@ def computeAccuracy(devLabels, devArticles, ngramModeler):
         i += 1
     print("Good Classifications: %d" % count)
     return 1
+
+def getFeature(devFileName):
+    if devFileName == 'trainingSet.dat':
+        feature = loadObj('log_likelihood_feature')
+        featureArray = np.zeros([len(feature), 1], dtype=float)
+        i = 0
+        for f in feature:
+            featureArray[i] = f
+            i += 1
+    else:
+        ngramModeler = loadObj('smallTrigramModeler')
+        articles = importArticles(devFileName)
+        featureLength = len(articles)
+        featureArray = np.zeros([featureLength, 1], dtype=float)
+        i = 0
+        for article in articles:
+            parsedArticle = posParseArticle(article)
+            ll = computeArticleLogLikelihood(parsedArticle, ngramModeler)
+            featureArray[i] = ll
+            i += 1
+    return featureArray
+
+
+
 def main():
     #dataSet = importDataSet('LM-train-100MW.txt')
     #parsedCorpus = posParseLines(dataSet, 'corpusPosTagged')
@@ -211,11 +236,12 @@ def main():
     parsedBadArticles = loadObj('posbadarticles')
     #printArticlesPos(articles, parsedGoodArticles, labels, True)
     trigramModeler = NG.NgramModeler(parsedGoodArticles)
-
+    saveObj(trigramModeler, 'smallTrigramModeler')
     computeLogLikelihood(parsedGoodArticles, parsedBadArticles, trigramModeler)
 #    createLLFeatureForTraining(parsedGoodArticles, parsedBadArticles, labels, trigramModeler)
     computeAccuracy(devLabels, devArticles, trigramModeler)
     computeAccuracy(labels, articles, trigramModeler)
+    getFeature('trainingSet.dat')
 
 if __name__ == "__main__": main()
 
