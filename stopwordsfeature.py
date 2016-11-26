@@ -5,6 +5,7 @@ import nltk
 import nltk.tokenize
 from nltk.corpus import stopwords
 import logging
+import numpy as np
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 STOPWORDS = set(stopwords.words('english'))
@@ -60,12 +61,24 @@ def getNumberOfStopwords(article):
     return float(sumStop)/sumLength
 
 
+def createStopwordsFeature(devFileName):
+    articles = importArticles(devFileName)
+    featureLength = len(articles)
+    featureArray = np.zeros([featureLength,1], dtype=float)
+    i = 0
+    for article in articles:
+        stopWords = getNumberOfStopwords(article)
+        featureArray[i] = stopWords
+        i += 1
+    return featureArray
+
 def main():
     articlesPickle = []
     goodArticles = []
     badArticles = []
     articles = importArticles('trainingSet.dat')
     labels = getFakeGood('trainingSetLabels.dat')
+    createStopwordsFeature('trainingSet.dat')
     i = 0
     for label in labels:
         if label == 1:
@@ -85,6 +98,7 @@ def main():
     logging.debug("Average number of stopwords in good articles: %f" % (sum(goodArticles)/len(goodArticles)))
     logging.debug("Average number of stopwords in bad articles: %f" % (sum(badArticles)/len(badArticles)))
     saveObj(articlesPickle, 'feature_stopwords')
+
 if __name__ == "__main__": main()
 
 

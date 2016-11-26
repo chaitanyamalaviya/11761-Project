@@ -22,8 +22,8 @@ class NgramModeler:
         self.unigramProbabilities = self.computeUnigramsProbs()
         self.bigramProbabilities = self.computeBigramsProbs()
         self.trigramProbabilities = self.computeTrigramsProbs()
-        self.l1 = 0.9
-        self.l2 = 0.05
+        self.l1 = 0.6
+        self.l2 = 0.35
         self.l3 = 0.04
         self.l0 = 0.01
 
@@ -123,6 +123,7 @@ class NgramModeler:
 
     def computeAverageArticleLogLikelihood(self, article):
         sentencesLL = []
+        length = 0
         for sentence in article:
             ll = 0
             sentence.append('</s>')
@@ -132,8 +133,10 @@ class NgramModeler:
             for trigram in trigrams:
                 probability = math.log(self.smoothedProbability(trigram))
                 ll = ll + probability
-            sentencesLL.append(float(ll)/len(sentence))
-        averageLL = np.mean(sentencesLL)
+            sentencesLL.append(float(ll)*len(sentence))
+            length = length + len(sentence)
+#        averageLL = np.mean(sentencesLL)
+        averageLL = np.sum(sentencesLL)/float(length)
         return averageLL
 
     def getTopNgrams(self, n):
