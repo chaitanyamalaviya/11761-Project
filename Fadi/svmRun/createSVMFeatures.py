@@ -14,6 +14,8 @@ import cooccurFeatures
 import stopwordsfeature
 import miminumPCFGScore
 import posngrams
+import countLDA
+import lda
 
 
 def toSVMformat(labels, features):
@@ -58,9 +60,17 @@ if __name__ == '__main__':
 	labels = getLabels(sys.argv[2])
 
 	features = []
-	features.append(cooccurFeatures.getFeatures(sys.argv[1]))
-	features.append(stopwordsfeature.getFeature(sys.argv[1]))
-	features.append(miminumPCFGScore.getFeature(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures(sys.argv[1]))
+	# features.append(stopwordsfeature.getFeature(sys.argv[1]))
+	# features.append(miminumPCFGScore.getFeature(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures2(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures3(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures4(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures6(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures7(sys.argv[1]))
+	# features.append(cooccurFeatures.getFeatures8(sys.argv[1]))
+	features.append(countLDA.feat_lda(sys.argv[1]))
+
 	# features.append(posngrams.getFeature(sys.argv[1]))
 
 	svmFormatLines = toSVMformat(labels,features)
