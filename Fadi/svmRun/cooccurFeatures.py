@@ -198,6 +198,162 @@ def getFeatures(filename):
 		return matrix
 
 
+def averageWordLength(doc):
+	totalWordLength = 0.0
+	wordCount = 0.0
+
+	for line in doc:
+		for w in line:
+			totalWordLength += len(w)
+			wordCount += 1.0
+
+	return totalWordLength / wordCount
+
+# average word length
+def getFeatures2(filename):
+	trainingData = getTrainingData(filename)
+	scores = np.zeros([len(trainingData),1], dtype=float)
+
+	for i in range(len(trainingData)):
+		currDoc = trainingData[i]
+		score = averageWordLength(currDoc)
+		scores[i] = score
+
+	return scores
+
+
+def typeToken(doc):
+	types = set()
+	wordCount = 0.0
+
+	for line in doc:
+		for w in line:
+			types.add(w)
+			wordCount += 1.0
+
+	return float(len(types)) / wordCount
+
+# type / token 
+def getFeatures3(filename):
+	trainingData = getTrainingData(filename)
+	scores = np.zeros([len(trainingData),1], dtype=float)
+
+	for i in range(len(trainingData)):
+		currDoc = trainingData[i]
+		score = typeToken(currDoc)
+		scores[i] = score
+
+	return scores
+
+
+def sentenceLengthStd(doc):
+	lengths = []
+
+	for line in doc:
+		lengths.append(len(line))
+		# for w in line:
+			# lengths.append(len(w))
+
+	return np.std(lengths)
+
+
+# std of sentence length
+def getFeatures4(filename):
+	trainingData = getTrainingData(filename)
+	scores = np.zeros([len(trainingData),1], dtype=float)
+
+	for i in range(len(trainingData)):
+		currDoc = trainingData[i]
+		score = sentenceLengthStd(currDoc)
+		scores[i] = score
+
+	return scores
+
+
+def firstWordTypeToken(doc):
+	types = set()
+	wordCount = 0.0
+
+	for line in doc:
+		if len(line) == 0:
+			continue
+		types.add(line[0])
+		wordCount += 1.0
+
+	return float(len(types)) / wordCount
+
+# type / token for first word in  sentence
+def getFeatures5(filename):
+	trainingData = getTrainingData(filename)
+	scores = np.zeros([len(trainingData),1], dtype=float)
+
+	for i in range(len(trainingData)):
+		currDoc = trainingData[i]
+		score = firstWordTypeToken(currDoc)
+		scores[i] = score
+
+	return scores	
+
+
+def wordSentenceOccurance(doc):
+	vocab = defaultdict(float)
+	for line in doc:
+		for w in line:
+			vocab[w] = 0.0
+
+	for line in doc:
+		for key in vocab.keys():
+			if key in line:
+				vocab[key] += 1.0
+
+	return (sum(vocab.values()) / len(vocab)) / len(doc)
+
+def getFeatures6(filename):
+	trainingData = getTrainingData(filename)
+	scores = np.zeros([len(trainingData),1], dtype=float)
+
+	for i in range(len(trainingData)):
+		currDoc = trainingData[i]
+		score = wordSentenceOccurance(currDoc)
+		scores[i] = score
+
+	return scores	
+
+def getFeatures7(filename):
+	trainingData = getTrainingData(filename)
+	scores = np.zeros([len(trainingData),1], dtype=float)
+
+	for i in range(len(trainingData)):
+		currDoc = trainingData[i]
+		score = len(currDoc)
+		scores[i] = score
+
+	return scores	
+
+def getFeatures8(filename):
+	if filename == "trainingSet.dat":
+		l = pickle.load( open( "./pickles/lm5gramsfeature.pkl", "rb" ) )
+		matrix = np.zeros([len(l),1], dtype=float)
+		for i in range(len(l)):
+			matrix[i,0] = l[i]
+
+		# remove std
+		# matrix = np.delete(matrix,1,1)
+		# remove average
+		# matrix = np.delete(matrix,0,1)
+		return matrix
+	elif filename == "developmentSet.dat":
+		l = pickle.load( open( "./pickles/lm5gramsfeatureDev.pkl", "rb" ) )
+		matrix = np.zeros([len(l),1], dtype=float)
+		for i in range(len(l)):
+			matrix[i,0] = l[i]
+		# remove std
+		# matrix = np.delete(matrix,1,1)
+		# remove average
+		# matrix = np.delete(matrix,0,1)
+		return matrix
+
+
 # if __name__ == '__main__':
 # 	trainingData = getTrainingData(sys.argv[1])
 # 	labels = getTrainingLabels(sys.argv[2])
