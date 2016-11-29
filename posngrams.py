@@ -1,16 +1,26 @@
 import os
+import re
 import nltk
 import nltk.tokenize
 from nltk.parse import stanford
+from nltk.tag.stanford import StanfordPOSTagger
 import ngrammodeler as NG
 import pickle
 import plotFunctions as PF
 import numpy as np
+import subprocess
+import logging
 
 os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
 os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
-
+os.environ['STANFORDNER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars/'
 parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
+
+stanford_dir = os.environ['STANFORDNER']
+model = stanford_dir + 'english-bidirectional-distsim.tagger'
+jarfile = stanford_dir  + 'stanford-postagger.jar'
+stanford_pos = StanfordPOSTagger(model, jarfile)
+
 
 def saveObj(obj, name):
     with open(name + '.pkl', 'wb') as f:
@@ -25,7 +35,8 @@ def posParseArticle(article):
     for sentence in article:
         sentence = sentence.lower()
         text = nltk.word_tokenize(sentence)
-        posTaggedSentence = nltk.pos_tag(text)
+#        posTaggedSentence = nltk.pos_tag(text)
+        posTaggedSentence = stanford_pos.tag(text)
         posTaggedSentence = [tag[1] for tag in posTaggedSentence]
         taggedArticle.append(posTaggedSentence)
     return taggedArticle
@@ -69,7 +80,8 @@ def posParseLines(corpus, name):
     for sentence in corpus:
         sentence = sentence.lower()
         text = nltk.word_tokenize(sentence)
-        posTaggedSentence = nltk.pos_tag(text)
+#        posTaggedSentence = nltk.pos_tag(text)
+        posTaggedSentence = stanford_pos.tag(text)
         posTaggedSentence = [tag[1] for tag in posTaggedSentence]
         taggedCorpus.append(posTaggedSentence)
     saveObj(taggedCorpus, name)
@@ -198,12 +210,14 @@ def computeAccuracy(devLabels, devArticles, ngramModeler):
     return 1
 
 def getFeature(devFileName):
+    featureList = []
     if devFileName == 'trainingSet.dat':
         feature = loadObj('log_likelihood_feature')
         featureArray = np.zeros([len(feature), 1], dtype=float)
         i = 0
         for f in feature:
             featureArray[i] = f
+            featureList.append(float(f))
             i += 1
     else:
         ngramModeler = loadObj('smallTrigramModeler')
@@ -215,14 +229,67 @@ def getFeature(devFileName):
             parsedArticle = posParseArticle(article)
             ll = computeArticleLogLikelihood(parsedArticle, ngramModeler)
             featureArray[i] = ll
+            featureList.append(float(ll))
             i += 1
-    return featureArray
+    return featureList
 
+def getFeature(devFileName):
+    featureList = []
+    articles = importArticles(devFileName)
+    posParsed = posParseArticles(articles, 'posarticles'+devFileName)
+    for article in posParsed:
+        writeArticle(article)
+        ppArticle = getPerplexity('article.txt')
+        featureList.append(ppArticle)
+    return featureList
+
+def getPerplexity(articleName):
+    cmd = "echo \"perplexity -text /tmp/"+articleName+"\" | evallm -binary ./pos2grams.binlm"
+    ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = ps.communicate()[0]
+    perplexityString = output.split('\n')[6]
+    matchObj = re.match(r'Perplexity = ([0-9]+\.[0-9]+),', perplexityString, re.M | re.I)
+    if matchObj:
+        perplexity = matchObj.group(1)
+    else:
+        logging.debug("There was an error in getting the perplexity")
+    return float(perplexity)
+
+def writeArticle(article):
+    with open('/tmp/article.txt', 'w') as f:
+        for posSentence in article:
+            stringToWrite = '<S>'
+            for pos in posSentence:
+                stringToWrite = stringToWrite+' '+pos
+            stringToWrite = stringToWrite + ' </S>\n'
+            f.write(stringToWrite)
+    return 1
+
+def computePosPerplexity(parsedBadArticles, parsedGoodArticles):
+    y1 = []
+    y2 = []
+    for article in parsedGoodArticles:
+        writeArticle(article)
+        ppArticle = getPerplexity('article.txt')
+        y1.append(ppArticle)
+        print(ppArticle)
+
+    for article in parsedBadArticles:
+        writeArticle(article)
+        ppArticle = getPerplexity('article.txt')
+        y2.append(ppArticle)
+        print(ppArticle)
+    print
+    print(sum(y1)/500.0)
+    print(sum(y2)/500.0)
+    PF.plotLL(y1, y2)
+    return y1, y2
 
 
 def main():
     #dataSet = importDataSet('LM-train-100MW.txt')
     #parsedCorpus = posParseLines(dataSet, 'corpusPosTagged')
+    #saveObj(parsedCorpus, 'corpusPosTagged')
     #parsedCorpus = loadObj('corpusPosTagged')
     articles = importArticles('trainingSet.dat')
     labels = getFakeGood('trainingSetLabels.dat')
@@ -234,14 +301,21 @@ def main():
     #createScores(labels, articles)
     parsedGoodArticles = loadObj('posgoodarticles')
     parsedBadArticles = loadObj('posbadarticles')
+    #computePosPerplexity(parsedBadArticles, parsedGoodArticles)
+
+    #featureTrain = getFeature('trainingSet.dat')
+    #saveObj(featureTrain, 'posFeatureTrain')
+    featureDev = getFeature('developmentSet.dat')
+    saveObj(featureDev, 'pos2FeatureDev')
+
     #printArticlesPos(articles, parsedGoodArticles, labels, True)
-    trigramModeler = NG.NgramModeler(parsedGoodArticles)
-    saveObj(trigramModeler, 'smallTrigramModeler')
-    computeLogLikelihood(parsedGoodArticles, parsedBadArticles, trigramModeler)
+    #trigramModeler = NG.NgramModeler(parsedGoodArticles)
+    #saveObj(trigramModeler, 'smallTrigramModeler')
+    #computeLogLikelihood(parsedGoodArticles, parsedBadArticles, trigramModeler)
 #    createLLFeatureForTraining(parsedGoodArticles, parsedBadArticles, labels, trigramModeler)
-    computeAccuracy(devLabels, devArticles, trigramModeler)
-    computeAccuracy(labels, articles, trigramModeler)
-    getFeature('trainingSet.dat')
+    #computeAccuracy(devLabels, devArticles, trigramModeler)
+    #computeAccuracy(labels, articles, trigramModeler)
+    #getFeature('trainingSet.dat')
 
 if __name__ == "__main__": main()
 

@@ -7,6 +7,7 @@ import nltk.tokenize
 from nltk.parse import stanford
 import ngrammodeler as NG
 import pickle
+import numpy as np
 
 def importScores(fileName):
     articlesList = []
@@ -25,20 +26,12 @@ def importScores(fileName):
             scoresList.append(scores)
     return articlesList, scoresList
 
-
 def computeArticlesAverageScore(articles, scores, threshold):
     count = 0
     avAverage = 0
     skipped = 3
     for j in range(len(articles)):
         articleAvg = []
-        #         for i in range(len(goodArticles[j])):
-        # #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
-        #             if len(goodArticles[j][i].split()) >= 1:
-        #                 sentenceScore = goodScores[j][i]/float(len(goodArticles[j][i].split()))
-        #                 articleAvg.append(sentenceScore)
-        #         average = sum(articleAvg)/len(goodArticles[j])
-        #         print(average)
         length = 0
         for i in range(len(articles[j])):
             #            if len(goodArticles[j][i].split()) >= 1 and len(goodArticles[j][i].split()) <= 10:
@@ -54,6 +47,69 @@ def computeArticlesAverageScore(articles, scores, threshold):
     print("Number of articles with score less than %d: %d" % (threshold, count))
     print("Average on all articles: %f" % (avAverage / len(articles)))
 
+
+def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScores, labels):
+    g = 0
+    b = 0
+    pcfgScoresFeature = []
+    for label in labels:
+        length = 0
+        articleScores = []
+        if label == 0:
+            for i in range(len(badArticles[b])):
+                length = length + len(badArticles[b][i].split())
+                sentenceScore = badScores[b][i] * len(badArticles[b][i].split())
+                articleScores.append(sentenceScore)
+            articleScores = [s / float(length) for s in articleScores]
+            pcfgScoresFeature.append(sum(articleScores))
+            b += 1
+        if label == 1:
+            for i in range(len(goodArticles[g])):
+                length = length + len(goodArticles[g][i].split())
+                sentenceScore = goodScores[g][i] * len(goodArticles[g][i].split())
+                articleScores.append(sentenceScore)
+            articleScores = [s / float(length) for s in articleScores]
+            pcfgScoresFeature.append(sum(articleScores))
+            g += 1
+    return pcfgScoresFeature
+
+def getFakeGood(labelsFileName):
+    path = os.getcwd()
+    with open(path + '/' + labelsFileName, "r") as f:
+        lines = f.readlines()
+    labels = []
+    for line in lines:
+        line = line.rstrip()
+        labels.append(int(line))
+    return labels
+
+def getFileNames(devFileName):
+    if devFileName == 'trainingSet.dat':
+        labelsFileName = 'trainingSetLabels.dat'
+        goodArticlesFileName = 'goodArticles.txt'
+        badArticlesFileName = 'badArticles.txt'
+    else:
+        labelsFileName = 'developmentSetLabels.dat'
+        goodArticlesFileName = 'goodArticlesDevelopment.txt'
+        badArticlesFileName = 'badArticlesDevelopment.txt'
+    return labelsFileName, goodArticlesFileName, badArticlesFileName
+
+
+def getFeature(devFileName):
+    featureList = []
+    labelsFileName, goodArticlesFileName, badArticlesFileName = getFileNames(devFileName)
+    goodArticles, goodScores = importScores(goodArticlesFileName)
+    badArticles, badScores = importScores(badArticlesFileName)
+    featureLength = len(goodArticles) + len(badArticles)
+    labels = getFakeGood(labelsFileName)
+    featureArray = np.zeros([featureLength, 1], dtype=float)
+    feature = createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScores, labels)
+    i = 0
+    for f in feature:
+        featureArray[i] = f
+        i += 1
+        featureList.append((f))
+    return featureList
 
 def main():
     path = os.getcwd()

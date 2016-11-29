@@ -189,7 +189,7 @@ def main():
     badArticles, badScores = importScores(badArticlesFileName)
     labels = getFakeGood(labelsFileName)
     createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScores, labels)
-    getFeature('developmentSet.dat')
+    getFeature('trainingSet.dat')
     #feature = loadObj('min_score_feature')
 #    computeAccuracy(devLabels, devArticles)
 if __name__ == "__main__": main()

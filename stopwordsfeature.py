@@ -65,12 +65,14 @@ def getFeature(devFileName):
     articles = importArticles(devFileName)
     featureLength = len(articles)
     featureArray = np.zeros([featureLength,1], dtype=float)
+    featureList = []
     i = 0
     for article in articles:
         stopWords = getNumberOfStopwords(article)
         featureArray[i] = stopWords
+        featureList.append(float(stopWords))
         i += 1
-    return featureArray
+    return featureList
 
 def main():
     articlesPickle = []
