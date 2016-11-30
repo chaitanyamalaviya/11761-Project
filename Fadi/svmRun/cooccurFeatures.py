@@ -162,40 +162,42 @@ def docLogLikelihood_average_std(vocabDict, model, doc):
 
 def run(vocabDict, model, articles):
 	scores = np.zeros([len(articles),2], dtype=float)
+	# scores = np.zeros([len(articles),1], dtype=float)
 
 	for i in range(len(articles)):
 		doc = articles[i]
 		average, std = docLogLikelihood_average_std(vocabDict,model,doc)
 		scores[i,0] = average
 		scores[i,1] = std
+		# scores[i,0] = std
 
 	return scores
 
-# def getFeatures(filename):
-# 	trainingData = getTrainingData(filename)
-# 	vocab = getVocabFromFile("./vocab.txt")
-# 	vocabDict = listToDict(vocab)
-# 	m =  load_sparse_matrix('wordCooccurProb-Final.npy.npz').tolil()
-
-# 	scores = run(vocabDict, m ,trainingData)
-# 	return scores
-
-
 def getFeatures(filename):
-	if filename == "trainingSet.dat":
-		matrix = pickle.load( open( "./pickles/cooccurTrain.p", "rb" ) )
-		# remove std
-		# matrix = np.delete(matrix,1,1)
-		# remove average
-		# matrix = np.delete(matrix,0,1)
-		return matrix
-	elif filename == "developmentSet.dat":
-		matrix = pickle.load( open( "./pickles/cooccurTest.p", "rb" ) )
-		# remove std
-		# matrix = np.delete(matrix,1,1)
-		# remove average
-		# matrix = np.delete(matrix,0,1)
-		return matrix
+	trainingData = getTrainingData(filename)
+	vocab = getVocabFromFile("./vocab.txt")
+	vocabDict = listToDict(vocab)
+	m =  load_sparse_matrix('wordCooccurProb-Final.npy.npz').tolil()
+
+	scores = run(vocabDict, m ,trainingData)
+	return scores
+
+
+# def getFeatures(filename):
+# 	if filename == "trainingSet.dat":
+# 		matrix = pickle.load( open( "./pickles/cooccurTrain.p", "rb" ) )
+# 		# remove std
+# 		# matrix = np.delete(matrix,1,1)
+# 		# remove average
+# 		# matrix = np.delete(matrix,0,1)
+# 		return matrix
+# 	elif filename == "developmentSet.dat":
+# 		matrix = pickle.load( open( "./pickles/cooccurTest.p", "rb" ) )
+# 		# remove std
+# 		# matrix = np.delete(matrix,1,1)
+# 		# remove average
+# 		# matrix = np.delete(matrix,0,1)
+# 		return matrix
 
 
 def averageWordLength(doc):
@@ -308,6 +310,7 @@ def wordSentenceOccurance(doc):
 
 	return (sum(vocab.values()) / len(vocab)) / len(doc)
 
+# word sentence occurance
 def getFeatures6(filename):
 	trainingData = getTrainingData(filename)
 	scores = np.zeros([len(trainingData),1], dtype=float)
@@ -344,6 +347,29 @@ def getFeatures8(filename):
 		return matrix
 	elif filename == "developmentSet.dat":
 		l = pickle.load( open( "./pickles/lm5gramsfeatureDev.pkl", "rb" ) )
+		matrix = np.zeros([len(l),1], dtype=float)
+		for i in range(len(l)):
+			matrix[i,0] = l[i]
+		# remove std
+		# matrix = np.delete(matrix,1,1)
+		# remove average
+		# matrix = np.delete(matrix,0,1)
+		return matrix
+
+def getFeatures9(filename):
+	if filename == "trainingSet.dat":
+		l = pickle.load( open( "./pickles/lm2gramsfeature.pkl", "rb" ) )
+		matrix = np.zeros([len(l),1], dtype=float)
+		for i in range(len(l)):
+			matrix[i,0] = l[i]
+
+		# remove std
+		# matrix = np.delete(matrix,1,1)
+		# remove average
+		# matrix = np.delete(matrix,0,1)
+		return matrix
+	elif filename == "developmentSet.dat":
+		l = pickle.load( open( "./pickles/lm2gramsfeatureDev.pkl", "rb" ) )
 		matrix = np.zeros([len(l),1], dtype=float)
 		for i in range(len(l)):
 			matrix[i,0] = l[i]
