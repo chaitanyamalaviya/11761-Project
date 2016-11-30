@@ -51,7 +51,7 @@ featureAvgLength = loadObj('featureAvgLength')
 HML = np.array([np.array(xi) for xi in featureHmlTotal])
 HML = HML.transpose()
 
-X = np.array([featureLm2, featureSw, featurePos, featureLm5, featurePos2, featureLm7, featureTypeToken, featureNSents ])
+X = np.array([featureLm2, featureSw, featurePos, featureLm5, featurePos2, featureLm7, featureTypeToken ])
 X = X.transpose()
 
 X = np.column_stack((HML,X))
@@ -87,7 +87,7 @@ devDataHml = devDataHml.transpose()
 #devX = np.array([devDataAlme, devDataPos, devDataLm7])
 #devX = np.array([devDataLm5, devDataHml, devDataSwf, devDataPos, devDataLm2])
 
-devX = np.array([devDataLm2, devDataSwf, devDataPos, devDataLm5, devDataPos2, devDataLm7, devDataTyTo, devDataNSents])
+devX = np.array([devDataLm2, devDataSwf, devDataPos, devDataLm5, devDataPos2, devDataLm7, devDataTyTo])
 devX = devX.transpose()
 
 devX = np.column_stack((devDataHml,devX))
