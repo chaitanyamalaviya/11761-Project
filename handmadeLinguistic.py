@@ -189,7 +189,7 @@ def checkLinguisticFeatureOnTraining(labels, parsedGoodArticles, parsedBadArticl
 
 
 
-def getFeature(devFileName):
+def getFeatureSingle(devFileName):
     articles = importArticles(devFileName)
     featureLength = len(articles)
     featureArray = np.zeros([featureLength,1], dtype=float)
@@ -230,16 +230,24 @@ def checkLinguisticFeatureOnArticleWithArg(article, tag, position):
             count = 1
     return count
 
-
-
 def createPosMatrixFeatures(devFileName):
     positions = [-1, 0]
     featureMatrix = []
     for position in positions:
         for tag in PENNPOSTAGS:
-            print("Doing tag: %s" % tag)
+            logging.debug("Doing tag: %s" % tag)
             featureList = getFeatureArg(devFileName, tag, position)
             featureMatrix.append(featureList)
+    return featureMatrix
+
+def getFeature(devFileName, name):
+    """
+    To be called to create the overall feature
+    :param devFileName:
+    :param name:
+    :return:
+    """
+    featureMatrix = createPosMatrixFeatures(devFileName)
     return featureMatrix
 
 

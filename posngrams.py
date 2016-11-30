@@ -209,7 +209,7 @@ def computeAccuracy(devLabels, devArticles, ngramModeler):
     print("Good Classifications: %d" % count)
     return 1
 
-def getFeature(devFileName):
+def getFeatureOld(devFileName):
     featureList = []
     if devFileName == 'trainingSet.dat':
         feature = loadObj('log_likelihood_feature')
@@ -243,8 +243,8 @@ def getFeature(devFileName):
         featureList.append(ppArticle)
     return featureList
 
-def getPerplexity(articleName):
-    cmd = "echo \"perplexity -text /tmp/"+articleName+"\" | evallm -binary ./pos2grams.binlm"
+def getPerplexity(articleName, lm):
+    cmd = "echo \"perplexity -text /tmp/"+articleName+"\" | evallm -binary ./" + lm
     ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = ps.communicate()[0]
     perplexityString = output.split('\n')[6]
