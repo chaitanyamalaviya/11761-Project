@@ -36,7 +36,6 @@ def feat_kenlm(input_data_file):
             article_word_count += len(sent.split(" "))
         scoreList.append(cum_article_score/(article_word_count * len(article)))
 
-    print scoreList
     return np.array(scoreList)
 
 LM = os.path.join(os.path.dirname(__file__), '..','..', 'kenlm-4gram.bin')
