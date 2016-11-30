@@ -1,16 +1,18 @@
+import countLDA
 import os
 import numpy as np
 import pickle
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets, metrics
 from sklearn import linear_model
 from sklearn import svm
+import handmadeLinguistic as hml
+import arpalmevaluation as alme
 import stopwordsfeature as swf
-import countLDA
-import kenlm4gram
 
 from sklearn.pipeline import Pipeline, FeatureUnion
 #import skflow
@@ -18,7 +20,6 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 def loadObj(name):
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)
-
 
 def getFakeGood(labelsFileName):
     path = os.getcwd()
@@ -31,7 +32,7 @@ def getFakeGood(labelsFileName):
     return labels
 
 #featureAlme = alme.getFeature1('trainingSet.dat')
-# featureMinScore = loadObj('min_score_feature')
+featureMinScore = loadObj('min_score_feature')
 featureNSents = loadObj('featureNSents')
 featureLm5 = loadObj('lm5gramsfeature')
 featureLm2 = loadObj('lm2gramsfeature')
@@ -39,22 +40,24 @@ featureLm3 = loadObj('lm3gramsfeature')
 featurePos = loadObj('posFeatureTrain')
 featurePos2 = loadObj('pos2Feature')
 featureLm7 = loadObj('lm7gramsfeatureTrain')
-# featureHml = loadObj('handMadeLinguisticFeature')
+featureHml = loadObj('handMadeLinguisticFeature')
 featureSw = loadObj('feature_stopwords')
 featureHmlTotal = loadObj('hmlFeaturesMatrix')
-featureTypeToken = loadObj('featureTyTo')
+#featureTypeToken = loadObj('featureTyTo')
+featureTypeToken = countLDA.feat_type_token_ratio('trainingSet.dat')
 featureAvgLength = loadObj('featureAvgLength')
-feature_kenlm4gram = kenlm4gram.feat_kenlm('trainingSet.dat')
+featureKenLm5 = loadObj('kemlm5')
+featureKenLm4 = loadObj('kemlm4')
 #X = np.array([featureAlme, featurePos, featureLm7])
 #X = np.array([featureLm5, featureHml, featureSw, featurePos, featureLm2])
 
 HML = np.array([np.array(xi) for xi in featureHmlTotal])
 HML = HML.transpose()
 
-X = np.array([featureLm2, featureSw, featurePos, featureLm5, featurePos2, featureLm7, featureTypeToken, featureNSents, feature_kenlm4gram ])
+X = np.array([featureLm2, featureSw, featurePos, featureLm5, featurePos2, featureLm7, featureTypeToken, featureKenLm5 ])
 X = X.transpose()
 
-# X = np.column_stack((HML,X))
+X = np.column_stack((HML,X))
 
 
 #devData = np.asarray(loadObj('min_feature_dev'))
@@ -64,21 +67,22 @@ X = X.transpose()
 #X2 = np.array([featurePos])
 #X2 = X2.reshape([1000,1])
 
-# devMinScore = loadObj('min_feature_dev')
+devMinScore = loadObj('min_feature_dev')
 devDataLm5 = loadObj('lm5gramsfeatureDev')
 devDataPos = loadObj('posFeatureDev')
 devDataPos2 = loadObj('pos2FeatureDev')
 devDataLm7 = loadObj('lm7gramsfeatureDev')
 devDataLm2 = loadObj('lm2gramsfeatureDev')
 devDataLm3 = loadObj('lm3gramsfeatureDev')
-# devDataTyTo = loadObj('featureTyToDev')
-devDataTyTo = countLDA.feat_type_token_ratio('developmentSet.dat')
-# devDataHml = hml.getFeature('developmentSet.dat')
+#devDataTyTo = loadObj('featureTyToDev')
+#devDataHml = hml.getFeature('developmentSet.dat')
 devDataSwf = swf.getFeature('developmentSet.dat')
 devDataHml = loadObj('hmlFeaturesMatrixDev')
 devDataAvgLength = loadObj('featureAvgLengthDev')
 devDataNSents = loadObj('featureNSentsDev')
-devData_kenlm4gram = kenlm4gram.feat_kenlm('developmentSet.dat')
+devDataKenLm5 = loadObj('kemlm5Dev')
+devDataKenLm4 = loadObj('kemlm4Dev')
+devDataTyTo = countLDA.feat_type_token_ratio('developmentSet.dat')
 devDataHml = np.array([np.array(xi) for xi in devDataHml])
 devDataHml = devDataHml.transpose()
 #devDataAlme = alme.getFeature1('developmentSet.dat')
@@ -89,14 +93,10 @@ devDataHml = devDataHml.transpose()
 #devX = np.array([devDataAlme, devDataPos, devDataLm7])
 #devX = np.array([devDataLm5, devDataHml, devDataSwf, devDataPos, devDataLm2])
 
-#devX = np.array([devDataLm2, devDataSwf, devDataPos, devDataLm5, devDataPos2, devDataLm7, devDataTyTo])
-#devX = devX.transpose()
-# devX = np.array([devDataLm2, devDataSwf, devDataPos, devDataLm5, devDataPos2, devDataLm7, devDataTyTo, devDataNSents, devData_kenlm4gram])
-devX = devData_kenlm4gram
-print devX.shape
-# devX = devX.transpose()
+devX = np.array([devDataLm2, devDataSwf, devDataPos, devDataLm5, devDataPos2, devDataLm7, devDataTyTo, devDataKenLm5])
+devX = devX.transpose()
 
-# devX = np.column_stack((devDataHml,devX))
+devX = np.column_stack((devDataHml,devX))
 
 labels = np.asarray(getFakeGood('trainingSetLabels.dat'))
 Y = labels
@@ -133,14 +133,16 @@ accuracy = accuracy_score(devLabels, predicted)
 print("Accuracy Gaussian Naive Bayes Classifier: %f" % accuracy)
 
 
-logreg = linear_model.LogisticRegression(C=1e5)
-logreg.fit(X, Y)
-logreg_predictions = logreg.predict(devX)
-accuracy = accuracy_score(devLabels, logreg_predictions)
-print("Accuracy LogReg Classifier: %f" % accuracy)
-
 # classifier = skflow.TensorFlowDNNClassifier(hidden_units=[10, 20, 10], n_classes=3)
 # classifier.fit(X,Y)
 # predicted = classifier.predict(devX)
 # accuracy = accuracy_score(devLabels, predicted)
 # print(accuracy)
+
+
+
+logreg = linear_model.LogisticRegression(C=1e5)
+logreg.fit(X, Y)
+logreg_predictions = logreg.predict(devX)
+accuracy = accuracy_score(devLabels, logreg_predictions)
+print("Accuracy LogReg Classifier: %f" % accuracy)

@@ -235,12 +235,12 @@ def createPosMatrixFeatures(devFileName):
     featureMatrix = []
     for position in positions:
         for tag in PENNPOSTAGS:
-            logging.debug("Doing tag: %s" % tag)
+            print("Doing tag: %s" % tag)
             featureList = getFeatureArg(devFileName, tag, position)
             featureMatrix.append(featureList)
     return featureMatrix
 
-def getFeature(devFileName, name):
+def getFeature(devFileName):
     """
     To be called to create the overall feature
     :param devFileName:
@@ -265,5 +265,4 @@ def main():
     #featureMatrix = createPosMatrixFeatures('developmentSet.dat')
     #saveObj(featureMatrix, 'hmlFeaturesMatrixDev')
     featureMatrix = loadObj('hmlFeaturesMatrix')
-    print("Hello")
 if __name__ == "__main__": main()
