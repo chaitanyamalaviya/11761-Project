@@ -32,6 +32,8 @@ def getFakeGood(labelsFileName):
     return labels
 
 #featureAlme = alme.getFeature1('trainingSet.dat')
+featureMinScore = loadObj('min_score_feature')
+featureNSents = loadObj('featureNSents')
 featureLm5 = loadObj('lm5gramsfeature')
 featureLm2 = loadObj('lm2gramsfeature')
 featureLm3 = loadObj('lm3gramsfeature')
@@ -40,9 +42,20 @@ featurePos2 = loadObj('pos2Feature')
 featureLm7 = loadObj('lm7gramsfeatureTrain')
 featureHml = loadObj('handMadeLinguisticFeature')
 featureSw = loadObj('feature_stopwords')
+featureHmlTotal = loadObj('hmlFeaturesMatrix')
+featureTypeToken = loadObj('featureTyTo')
+featureAvgLength = loadObj('featureAvgLength')
 #X = np.array([featureAlme, featurePos, featureLm7])
-X = np.array([featureLm5, featureHml, featureSw, featurePos, featureLm2])
+#X = np.array([featureLm5, featureHml, featureSw, featurePos, featureLm2])
+
+HML = np.array([np.array(xi) for xi in featureHmlTotal])
+HML = HML.transpose()
+
+X = np.array([featureLm2, featureSw, featurePos, featureLm5, featurePos2, featureLm7, featureTypeToken, featureNSents ])
 X = X.transpose()
+
+X = np.column_stack((HML,X))
+
 
 #devData = np.asarray(loadObj('min_feature_dev'))
 #X1 = np.array([featureAlme])
@@ -51,29 +64,40 @@ X = X.transpose()
 #X2 = np.array([featurePos])
 #X2 = X2.reshape([1000,1])
 
+devMinScore = loadObj('min_feature_dev')
 devDataLm5 = loadObj('lm5gramsfeatureDev')
 devDataPos = loadObj('posFeatureDev')
 devDataPos2 = loadObj('pos2FeatureDev')
 devDataLm7 = loadObj('lm7gramsfeatureDev')
 devDataLm2 = loadObj('lm2gramsfeatureDev')
 devDataLm3 = loadObj('lm3gramsfeatureDev')
-devDataHml = hml.getFeature('developmentSet.dat')
+devDataTyTo = loadObj('featureTyToDev')
+#devDataHml = hml.getFeature('developmentSet.dat')
 devDataSwf = swf.getFeature('developmentSet.dat')
+devDataHml = loadObj('hmlFeaturesMatrixDev')
+devDataAvgLength = loadObj('featureAvgLengthDev')
+devDataNSents = loadObj('featureNSentsDev')
+devDataHml = np.array([np.array(xi) for xi in devDataHml])
+devDataHml = devDataHml.transpose()
 #devDataAlme = alme.getFeature1('developmentSet.dat')
 #devDataAlme = np.array([devDataAlme])
 #devDataAlme = devDataAlme.reshape([200,1])
 #devDataAlme = alme.getFeature1('developmentSet.dat')
 #devDataPos = np.array([devDataPos])
 #devX = np.array([devDataAlme, devDataPos, devDataLm7])
-devX = np.array([devDataLm5, devDataHml, devDataSwf, devDataPos, devDataLm2])
+#devX = np.array([devDataLm5, devDataHml, devDataSwf, devDataPos, devDataLm2])
+
+devX = np.array([devDataLm2, devDataSwf, devDataPos, devDataLm5, devDataPos2, devDataLm7, devDataTyTo, devDataNSents])
 devX = devX.transpose()
+
+devX = np.column_stack((devDataHml,devX))
 
 labels = np.asarray(getFakeGood('trainingSetLabels.dat'))
 Y = labels
 
 devLabels = np.asarray(getFakeGood('developmentSetLabels.dat'))
 
-bdt = AdaBoostClassifier(svm.SVC(probability=True,kernel='linear'),n_estimators=50, learning_rate=1.0, algorithm='SAMME')
+bdt = AdaBoostClassifier(svm.SVC(probability=True,kernel='linear'),n_estimators=50, learning_rate=1, algorithm='SAMME')
 #bdt = AdaBoostClassifier(GaussianNB(),n_estimators=50, learning_rate=1.0, algorithm='SAMME')
 
 bdt.fit(X, Y)
@@ -88,6 +112,8 @@ bdt.fit(X, Y)
 #accuracy = accuracy_score(devLabels, predicted)
 #print(accuracy)
 predicted = bdt.predict(devX)
+#predicted = bdt.predict(X)
+print(predicted)
 accuracy = accuracy_score(devLabels, predicted)
 print("Accuracy AdaBoost Classifier: %f" % accuracy)
 
@@ -95,7 +121,8 @@ print("Accuracy AdaBoost Classifier: %f" % accuracy)
 classifier = GaussianNB()
 classifier.fit(X, Y)
 predicted = classifier.predict(devX)
-print(predicted)
+#predicted = classifier.predict(X)
+
 accuracy = accuracy_score(devLabels, predicted)
 print("Accuracy Gaussian Naive Bayes Classifier: %f" % accuracy)
 

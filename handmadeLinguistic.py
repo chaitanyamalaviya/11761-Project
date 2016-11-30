@@ -5,7 +5,7 @@ from nltk.parse import stanford
 import ngrammodeler as NG
 from nltk.tag.stanford import StanfordPOSTagger
 import pickle
-#import plotFunctions as PF
+import plotFunctions as PF
 import logging
 import numpy as np
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
@@ -37,8 +37,8 @@ def posParseArticle(article):
     for sentence in article:
         sentence = sentence.lower()
         text = nltk.word_tokenize(sentence)
-#        posTaggedSentence = nltk.pos_tag(text)
-        posTaggedSentence = stanford_pos.tag(text)
+        posTaggedSentence = nltk.pos_tag(text)
+#        posTaggedSentence = stanford_pos.tag(text)
         posTaggedSentence = [tag[1] for tag in posTaggedSentence]
         taggedArticle.append(posTaggedSentence)
     return taggedArticle
@@ -237,6 +237,7 @@ def createPosMatrixFeatures(devFileName):
     featureMatrix = []
     for position in positions:
         for tag in PENNPOSTAGS:
+            print("Doing tag: %s" % tag)
             featureList = getFeatureArg(devFileName, tag, position)
             featureMatrix.append(featureList)
     return featureMatrix
@@ -245,16 +246,16 @@ def createPosMatrixFeatures(devFileName):
 def main():
     goodArticles = []
     badArticles = []
-    articles = importArticles('trainingSet.dat')
-    labels = getFakeGood('trainingSetLabels.dat')
+    articles = importArticles('developmentSet.dat')
+    labels = getFakeGood('developmentSetLabels.dat')
 
     #parsedGoodArticles = posParseArticles(goodArticles, 'posgoodarticles')
     #parsedBadArticles = posParseArticles(badArticles, 'posbadarticles')
     #parsedGoodArticles = loadObj('posgoodarticles')
     #parsedBadArticles = loadObj('posbadarticles')
     #checkLinguisticFeatureOnTraining(labels, parsedGoodArticles, parsedBadArticles)
-    featureMatrix = createPosMatrixFeatures('trainingSet.dat')
-    saveObj(featureMatrix, 'hmlFeaturesMatrix')
-    #featureMatrix = loadObj('hmlFeaturesMatrix')
+    #featureMatrix = createPosMatrixFeatures('developmentSet.dat')
+    #saveObj(featureMatrix, 'hmlFeaturesMatrixDev')
+    featureMatrix = loadObj('hmlFeaturesMatrix')
     print("Hello")
 if __name__ == "__main__": main()
