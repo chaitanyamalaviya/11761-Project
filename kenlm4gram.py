@@ -30,9 +30,11 @@ def feat_kenlm(input_data_file):
     scoreList = []
     for article in articles:
         cum_article_score = 0.0
+        article_word_count = 0
         for sent in article:
-			cum_article_score = model.score(sentence)
-        scoreList.append(cum_article_score/len(article))
+            cum_article_score = len(sent.split(" ")) * model.score(sent)
+            article_word_count += len(sent.split(" "))
+        scoreList.append(cum_article_score/(article_word_count * len(article)))
 
     print scoreList
     return np.array(scoreList)
