@@ -60,12 +60,10 @@ def loadModel(name):
 
 
 def feat_type_token_ratio(input_data_file):
-	
 	articles = importArticles(input_data_file)
-
 	article_words = []
 	for article in articles:
-		for sent in articles:	
+		for sent in article:
 			for word in sent.split(" "):
 				if word not in article_words:
 					article_words.append(word)

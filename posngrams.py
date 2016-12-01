@@ -35,8 +35,8 @@ def posParseArticle(article):
     for sentence in article:
         sentence = sentence.lower()
         text = nltk.word_tokenize(sentence)
-#        posTaggedSentence = nltk.pos_tag(text)
-        posTaggedSentence = stanford_pos.tag(text)
+        posTaggedSentence = nltk.pos_tag(text)
+#        posTaggedSentence = stanford_pos.tag(text)
         posTaggedSentence = [tag[1] for tag in posTaggedSentence]
         taggedArticle.append(posTaggedSentence)
     return taggedArticle
@@ -233,13 +233,13 @@ def getFeatureOld(devFileName):
             i += 1
     return featureList
 
-def getFeature(devFileName):
+def getFeature(devFileName, lm):
     featureList = []
     articles = importArticles(devFileName)
     posParsed = posParseArticles(articles, 'posarticles'+devFileName)
     for article in posParsed:
         writeArticle(article)
-        ppArticle = getPerplexity('article.txt')
+        ppArticle = getPerplexity('article.txt', lm)
         featureList.append(ppArticle)
     return featureList
 
