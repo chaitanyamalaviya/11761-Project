@@ -5,7 +5,7 @@ from nltk.parse import stanford
 import ngrammodeler as NG
 from nltk.tag.stanford import StanfordPOSTagger
 import pickle
-import plotFunctions as PF
+#import plotFunctions as PF
 import logging
 import numpy as np
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"

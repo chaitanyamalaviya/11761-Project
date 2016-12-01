@@ -20,7 +20,7 @@ import stopwordsfeature as swf
 from sklearn.pipeline import Pipeline, FeatureUnion
 #import skflow
 
-excludedList = ['pcfg', 'mpcfg']
+excludedList = ['pcfg', 'mpcfg', 'occ2']
 
 def importSingleFeatures(datasetPath):
     featuresList = os.listdir('features/'+datasetPath+'/single')
@@ -109,14 +109,29 @@ def importArrayFeatures(datasetPath):
                         trainPickleFileName = match.group(1)
                         trainPickle = loadObj(path + '/' + trainPickleFileName)
             if i == 0:
-                arraysFeaturesTrain = trainPickle.transpose()
-                arraysFeaturesDev = devPickle.transpose()
+                match = re.match(r'.*(notranspose).*', file)
+                if match:
+                    print("I am not transposing the feature %s" % feature)
+                    arraysFeaturesTrain = trainPickle
+                    arraysFeaturesDev = devPickle
+                else:
+                    arraysFeaturesTrain = trainPickle.transpose()
+                    arraysFeaturesDev = devPickle.transpose()
                 i += 1
             else:
-                tempTrain = trainPickle.transpose()
-                tempDev = devPickle.transpose()
-                arraysFeaturesTrain = np.column_stack((arraysFeaturesTrain, tempTrain))
-                arraysFeaturesDev = np.column_stack((arraysFeaturesDev, tempDev))
+                match = re.match(r'.*(notranspose).*', file)
+                if match:
+                    print("I am not transposing the feature %s" % feature)
+                    tempTrain = trainPickle
+                    tempDev = devPickle
+                    arraysFeaturesTrain = np.column_stack((arraysFeaturesTrain, tempTrain))
+                    arraysFeaturesDev = np.column_stack((arraysFeaturesDev, tempDev))
+
+                else:
+                    tempTrain = trainPickle.transpose()
+                    tempDev = devPickle.transpose()
+                    arraysFeaturesTrain = np.column_stack((arraysFeaturesTrain, tempTrain))
+                    arraysFeaturesDev = np.column_stack((arraysFeaturesDev, tempDev))
                 i += 1
     return arraysFeaturesTrain, arraysFeaturesDev
 
@@ -127,9 +142,6 @@ def buildFeatures(datasetPath):
 
     featuresTrain = np.column_stack((singleFeaturesTrain, multipleFeaturesTrain, arrayFeaturesTrain))
     featuresDev = np.column_stack((singleFeaturesDev, multipleFeaturesDev, arrayFeaturesDev))
-    #for i in range(0,800):
-    print(featuresTrain.shape)
-
     return featuresTrain, featuresDev
 
 def loadObj(name):
@@ -147,9 +159,14 @@ def getFakeGood(labelsFileName):
     return labels
 
 def adaBoostClassifier(X, Y, devX, devLabels):
-    bdt = AdaBoostClassifier(svm.SVC(probability=True, kernel='linear'), n_estimators=50, learning_rate=1, algorithm='SAMME')
+    bdt = AdaBoostClassifier(svm.SVC(probability=True, kernel='linear'), n_estimators=50, learning_rate=.1, algorithm='SAMME')
     bdt.fit(X, Y)
     predicted = bdt.predict(devX)
+    print(predicted)
+    with open('forfadi', 'w') as f:
+        for i in range(0,200):
+            strP = "%s\n" % str(predicted[i])
+            f.write(strP)
     accuracy = accuracy_score(devLabels, predicted)
     print("Accuracy AdaBoost Classifier: %f" % accuracy)
 
@@ -166,25 +183,11 @@ def main():
     devLabels = np.asarray(getFakeGood('developmentSetLabels.dat'))
     X = featuresTrain
     Y = labels
-    topK = 50
-    selection = SelectKBest(k=topK)
-#    combined_features = FeatureUnion([("univ_select", selection)])
-    # Use combined features to transform dataset:
-    X_features = selection.fit(X, Y).transform(X)
     devX = featuresDev
-    a = selection.get_support()
-    i = 0
-    j = 0
-    devX_features = np.empty((devX.shape[0],topK))
-    for good in a:
-        if good == True:
-            devX_features[:,j] = devX[:,i].reshape(200)
-            j += 1
-        i += i
-    print(X_features.shape)
-
-    adaBoostClassifier(X_features, Y, devX_features, devLabels )
-    logisticRegression(X_features, Y, devX_features, devLabels )
+    adaBoostClassifier(X, Y, devX, devLabels )
+    logisticRegression(X, Y, devX, devLabels )
+    adaBoostClassifier(X, Y, X, labels )
+    logisticRegression(X, Y, X, labels )
 
 if __name__ == "__main__": main()
 

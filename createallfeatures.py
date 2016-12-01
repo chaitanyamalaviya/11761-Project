@@ -28,10 +28,10 @@ featureAvgLength = loadObj('featureAvgLength')
 
 def main():
 
-    trainingFileName = 'trainingSet.dat'
+    trainingFileName = 'expandedTrainingSet3.txt'
     devsetFileName = 'developmentSet.dat'
     fileNames = [ trainingFileName, devsetFileName ]
-    datasetPath = 'features/orig/'
+    datasetPath = 'features/set3/'
     i = 0
     for file in fileNames:
         print("Creating the hml feature")
