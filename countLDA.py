@@ -2,6 +2,7 @@
 #TOP 10 MOST COMMON WORDS (BESIDES STOPWORDS)
 
 from __future__ import division
+from sklearn.preprocessing import normalize
 from collections import defaultdict, Counter
 from itertools import count, izip
 from nltk.corpus import stopwords
@@ -133,7 +134,7 @@ def feat_lda(input_data_file):
 	#LOAD GOOD LDA MODEL
 	ldaModel = loadModel("lda-goodArticles.model")
 	topic_word = ldaModel.topic_word_
-	n_top_words = 30
+	n_top_words = 20
 	n_topics = 50
 	topic_words = []
 
@@ -142,7 +143,7 @@ def feat_lda(input_data_file):
 
 	# TEST ARTICLE
 	articles = importArticles(input_data_file)
-	topic_coverage = np.zeros((len(articles), n_topics*2))
+	topic_coverage = np.zeros((len(articles), n_topics))
 	article_words = []
 	
 	for article in articles:	
@@ -154,22 +155,30 @@ def feat_lda(input_data_file):
 	Vb = util.Vocab()
 	docTerm = np.zeros((len(articles), len(article_words)))
 
-	print " ".join(topic_words[30])
 	# TOPIC COVERAGE CALCULATION
-	for i, article in enumerate(articles):
-		vocab = Vb.from_corpus(article, article_words)
-		docTerm[i] = vocab.termVector
+	# for i, article in enumerate(articles):
+	# 	vocab = Vb.from_corpus(article, article_words)
+	# 	docTerm[i] = vocab.termVector
 		
-		for j, topic_list in enumerate(topic_words):
-			for k, word in enumerate(topic_list):
-				if word in vocab.w2i:
-					idx = vocab.w2i[word]
-					topic_coverage[i, j] += docTerm[i][idx] * (n_top_words - k)
+	# 	for j, topic_list in enumerate(topic_words):
+	# 		for k, word in enumerate(topic_list):
+	# 			if word in vocab.w2i:
+	# 				idx = vocab.w2i[word]
+	# 				topic_coverage[i, j] += docTerm[i][idx] * (n_top_words - k)
 
 	doc_topic_test = ldaModel.transform(docTerm.astype('int64'))
-	topic_coverage[:,n_topics:] = doc_topic_test
+	normed_doc_topic_test = np.empty((len(articles), n_topics))
+	for i in range(doc_topic_test.shape[0]):
+		rsum = np.sum(doc_topic_test[i])
+		if (rsum==0):
+			normed_doc_topic_test[i] = doc_topic_test[i]
+			continue
+		normed_doc_topic_test[i] = np.array([e/rsum for e in doc_topic_test[i]])
+	# normed_matrix = normalize(doc_topic_test, axis=1, norm='l1')
 
-	return topic_coverage
+	# topic_coverage[:,n_topics:] = doc_topic_test
+
+	return doc_topic_test
 
 
 def feat_most_common_words(input_data_file):
