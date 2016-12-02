@@ -20,7 +20,14 @@ import stopwordsfeature as swf
 from sklearn.pipeline import Pipeline, FeatureUnion
 #import skflow
 
-excludedList = ['pcfg', 'mpcfg', 'occ2']
+def saveObj(obj, name):
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+# ['pcfg', 'mpcfg', 'occ2']
+excludedList = ['klm4', 'pcfg', 'mpcfg', 'occ2', 'occ1', 'lm7']
+
 
 def importSingleFeatures(datasetPath):
     featuresList = os.listdir('features/'+datasetPath+'/single')
@@ -36,13 +43,14 @@ def importSingleFeatures(datasetPath):
                 match = re.match(r'(.*Dev.*)\.pkl', file)
                 if (match):
                     devPickleFileName = match.group(1)
+                    print("Adding feature: %s from file %s" % (feature, path+'/'+devPickleFileName))
                     devPickle = loadObj(path+'/'+devPickleFileName)
                 else:
                     match = re.match(r'(.*)\.pkl', file)
                     if match:
                         trainPickleFileName = match.group(1)
+                        print("Adding feature: %s from file %s" % (feature, path+'/'+trainPickleFileName))
                         trainPickle = loadObj(path+'/'+trainPickleFileName)
-            #print("Adding feature: %s" % feature)
             if i == 0:
                 singleFeaturesTrain = np.array([trainPickle]).transpose()
                 singleFeaturesDev = np.array([devPickle]).transpose()
@@ -70,12 +78,13 @@ def importMultipleFeatures(datasetPath):
                 if (match):
                     devPickleFileName = match.group(1)
                     devPickle = loadObj(path + '/' + devPickleFileName)
+                    print("Adding feature: %s from file %s" % (feature, path + '/' + devPickleFileName))
                 else:
                     match = re.match(r'(.*)\.pkl', file)
                     if match:
                         trainPickleFileName = match.group(1)
                         trainPickle = loadObj(path + '/' + trainPickleFileName)
-            #print("Adding feature: %s" % feature)
+                    print("Adding feature: %s from file %s" % (feature, path + '/' + trainPickleFileName))
             if i == 0:
                 multipleFeaturesTrain = np.array([np.array(xi) for xi in trainPickle]).transpose()
                 multipleFeaturesDev = np.array([np.array(xi) for xi in devPickle]).transpose()
@@ -103,11 +112,13 @@ def importArrayFeatures(datasetPath):
                 if (match):
                     devPickleFileName = match.group(1)
                     devPickle = loadObj(path + '/' + devPickleFileName)
+                    print("Adding feature: %s from file %s" % (feature, path + '/' + devPickleFileName))
                 else:
                     match = re.match(r'(.*)\.pkl', file)
                     if match:
                         trainPickleFileName = match.group(1)
                         trainPickle = loadObj(path + '/' + trainPickleFileName)
+                        print("Adding feature: %s from file %s" % (feature, path + '/' + trainPickleFileName))
             if i == 0:
                 match = re.match(r'.*(notranspose).*', file)
                 if match:
@@ -168,6 +179,9 @@ def adaBoostClassifier(X, Y, devX, devLabels):
             strP = "%s\n" % str(predicted[i])
             f.write(strP)
     accuracy = accuracy_score(devLabels, predicted)
+    print(bdt.predict_log_proba(X))
+    print(bdt.predict_proba(X))
+    saveObj(bdt, 'adaBoostTrained93.model')
     print("Accuracy AdaBoost Classifier: %f" % accuracy)
 
 def logisticRegression(X, Y, devX, devLabels):
@@ -179,6 +193,7 @@ def logisticRegression(X, Y, devX, devLabels):
 
 def main():
     featuresTrain, featuresDev = buildFeatures('set1')
+    saveObj(featuresDev, '/tmp/featureSet')
     labels = np.asarray(getFakeGood('expandedTrainingSetLabels2.txt'))
     devLabels = np.asarray(getFakeGood('developmentSetLabels.dat'))
     X = featuresTrain
@@ -186,8 +201,9 @@ def main():
     devX = featuresDev
     adaBoostClassifier(X, Y, devX, devLabels )
     logisticRegression(X, Y, devX, devLabels )
-    adaBoostClassifier(X, Y, X, labels )
-    logisticRegression(X, Y, X, labels )
+
+#    adaBoostClassifier(X, Y, X, labels )
+#    logisticRegression(X, Y, X, labels )
 
 if __name__ == "__main__": main()
 

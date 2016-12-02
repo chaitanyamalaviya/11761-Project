@@ -1,13 +1,11 @@
 from __future__ import division
+
 import os
 import re
 import sys
-import nltk
-import nltk.tokenize
-from nltk.parse import stanford
-import ngrammodeler as NG
-import pickle
+
 import numpy as np
+
 
 def importScores(fileName):
     articlesList = []

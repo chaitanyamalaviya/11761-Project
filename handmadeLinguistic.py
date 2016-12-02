@@ -2,23 +2,21 @@ import os
 import nltk
 import nltk.tokenize
 from nltk.parse import stanford
-import ngrammodeler as NG
 from nltk.tag.stanford import StanfordPOSTagger
 import pickle
-#import plotFunctions as PF
 import logging
 import numpy as np
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
-os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
-os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
-os.environ['STANFORDNER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars/'
-parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
-stanford_dir = os.environ['STANFORDNER']
-model = stanford_dir + 'english-bidirectional-distsim.tagger'
-jarfile = stanford_dir  + 'stanford-postagger.jar'
-stanford_pos = StanfordPOSTagger(model, jarfile)
+# os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+# os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+# os.environ['STANFORDNER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars/'
+# parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
+# stanford_dir = os.environ['STANFORDNER']
+# model = stanford_dir + 'english-bidirectional-distsim.tagger'
+# jarfile = stanford_dir  + 'stanford-postagger.jar'
+# stanford_pos = StanfordPOSTagger(model, jarfile)
 
 PENNPOSTAGS = [ "CC","CD","DT","EX","FW","IN","JJ","JJR","JJS","LS","MD","NN","NNS","NNP","NNPS","PDT","POS","PRP","PRP$","RB","RBR","RBS","RP","SYM","TO","UH","VB","VBD","VBG","VBN","VBP","VBZ","WDT","WP","WP$","WRB" ]
 

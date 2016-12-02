@@ -2,16 +2,15 @@ from __future__ import division
 import os
 import re
 import sys
-os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
-os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+#os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+#os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
 import nltk
 import nltk.tokenize
 from nltk.parse import stanford
-import ngrammodeler as NG
 import pickle
 import numpy as np
 
-parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
+#parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
 
 def saveObj(obj, name):
     with open(name + '.pkl', 'wb') as f:

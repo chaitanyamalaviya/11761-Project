@@ -6,6 +6,7 @@ import nltk.tokenize
 from nltk.corpus import stopwords
 import logging
 import numpy as np
+
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 STOPWORDS = set(stopwords.words('english'))

@@ -1,25 +1,23 @@
+import logging
 import os
+import pickle
 import re
+import subprocess
 import nltk
 import nltk.tokenize
-from nltk.parse import stanford
-from nltk.tag.stanford import StanfordPOSTagger
-import ngrammodeler as NG
-import pickle
-import plotFunctions as PF
 import numpy as np
-import subprocess
-import logging
+from nltk.parse import stanford
+# from nltk.tag.stanford import StanfordPOSTagger
 
-os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
-os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
-os.environ['STANFORDNER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars/'
-parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
-
-stanford_dir = os.environ['STANFORDNER']
-model = stanford_dir + 'english-bidirectional-distsim.tagger'
-jarfile = stanford_dir  + 'stanford-postagger.jar'
-stanford_pos = StanfordPOSTagger(model, jarfile)
+# os.environ['STANFORD_PARSER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+# os.environ['STANFORD_MODELS'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars'
+# os.environ['STANFORDNER'] = '/root/src/ls11761/ls-project/stanford/stanford-parser-full/jars/'
+# parser = stanford.StanfordParser(model_path="/root/src/ls11761/ls-project/stanford/englishPCFG.ser.gz")
+#
+# stanford_dir = os.environ['STANFORDNER']
+# model = stanford_dir + 'english-bidirectional-distsim.tagger'
+# jarfile = stanford_dir  + 'stanford-postagger.jar'
+# stanford_pos = StanfordPOSTagger(model, jarfile)
 
 
 def saveObj(obj, name):
