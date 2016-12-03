@@ -110,6 +110,8 @@ def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScore
     b = 0
     goodMinScoresSum = 0
     badMinScoresSum = 0
+    good = open('goodscoresMin.txt', 'w')
+    bad = open('badscoresMin.txt', 'w')
     minScoresFeature = []
     for label in labels:
         length = 0
@@ -123,6 +125,7 @@ def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScore
             minScore = min(articleScores)
             minScoresFeature.append(minScore)
             b += 1
+            bad.write("%s\n" % minScore)
             badMinScoresSum += minScore
         if label == 1:
             for i in range(len(goodArticles[g])):
@@ -133,6 +136,7 @@ def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScore
             minScore = min(articleScores)
             minScoresFeature.append(minScore)
             g += 1
+            good.write("%s\n" % minScore)
             goodMinScoresSum += minScore
     #saveObj(minScoresFeature, name)
     print("This is the average min score for the good articles: %f" % (goodMinScoresSum/500.0))
@@ -188,7 +192,7 @@ def main():
     badArticles, badScores = importScores(badArticlesFileName)
     labels = getFakeGood(labelsFileName)
     createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScores, labels)
-    getFeature('trainingSet.dat')
+    #getFeature('trainingSet.dat')
     #feature = loadObj('min_score_feature')
 #    computeAccuracy(devLabels, devArticles)
 if __name__ == "__main__": main()

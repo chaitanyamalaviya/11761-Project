@@ -266,21 +266,25 @@ def writeArticle(article):
 def computePosPerplexity(parsedBadArticles, parsedGoodArticles):
     y1 = []
     y2 = []
+    good = open('goodscoresPos.txt', 'w')
+    bad = open('badscoresPos.txt', 'w')
     for article in parsedGoodArticles:
         writeArticle(article)
-        ppArticle = getPerplexity('article.txt')
+        ppArticle = getPerplexity('article.txt', 'LM/pos5grams.binlm')
         y1.append(ppArticle)
+        good.write("%s\n" % ppArticle)
         print(ppArticle)
 
     for article in parsedBadArticles:
         writeArticle(article)
-        ppArticle = getPerplexity('article.txt')
+        ppArticle = getPerplexity('article.txt', 'LM/pos5grams.binlm')
         y2.append(ppArticle)
         print(ppArticle)
+        bad.write("%s\n" % ppArticle)
     print
     print(sum(y1)/500.0)
     print(sum(y2)/500.0)
-    PF.plotLL(y1, y2)
+#    PF.plotLL(y1, y2)
     return y1, y2
 
 
@@ -297,14 +301,14 @@ def main():
 #    parsedGoodArticles = posParseArticles(goodArticles, 'posgoodarticles')
 #    parsedBadArticles = posParseArticles(badArticles, 'posbadarticles')
     #createScores(labels, articles)
-    parsedGoodArticles = loadObj('posgoodarticles')
-    parsedBadArticles = loadObj('posbadarticles')
-    #computePosPerplexity(parsedBadArticles, parsedGoodArticles)
+    parsedGoodArticles = loadObj('oldpickles/posgoodarticles')
+    parsedBadArticles = loadObj('oldpickles/posbadarticles')
+    computePosPerplexity(parsedBadArticles, parsedGoodArticles)
 
     #featureTrain = getFeature('trainingSet.dat')
     #saveObj(featureTrain, 'posFeatureTrain')
-    featureDev = getFeature('developmentSet.dat')
-    saveObj(featureDev, 'pos2FeatureDev')
+    #featureDev = getFeature('developmentSet.dat')
+    #saveObj(featureDev, 'pos2FeatureDev')
 
     #printArticlesPos(articles, parsedGoodArticles, labels, True)
     #trigramModeler = NG.NgramModeler(parsedGoodArticles)

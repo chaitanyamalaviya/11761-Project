@@ -83,6 +83,8 @@ def main():
     labels = getFakeGood('trainingSetLabels.dat')
     getFeature('trainingSet.dat')
     i = 0
+    goodf = open('goodswf.txt', 'w')
+    badf = open('badswf.txt', 'w')
     for label in labels:
         if label == 1:
             article = articles[i]
@@ -90,6 +92,7 @@ def main():
             logging.debug("Average number of stopwords in good article: %s" % score)
             goodArticles.append(score)
             articlesPickle.append(score)
+            goodf.write("%s\n" % score)
 
         if label == 0:
             article = articles[i]
@@ -97,6 +100,7 @@ def main():
             logging.debug("Average number of stopwords in bad article: %s" % score)
             badArticles.append(score)
             articlesPickle.append(score)
+            badf.write("%s\n" % score)
         i = i + 1
     logging.debug("Average number of stopwords in good articles: %f" % (sum(goodArticles)/len(goodArticles)))
     logging.debug("Average number of stopwords in bad articles: %f" % (sum(badArticles)/len(badArticles)))

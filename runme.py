@@ -21,7 +21,7 @@ import kenlmfeature as klm
 import pickle
 import logging
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 
 def loadObj(name):
     with open(name + '.pkl', 'rb') as f:
@@ -35,7 +35,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 #import skflow
 
 #includedList = ['hml', 'lm2', 'lm3', 'lm4', 'lm5', 'lm7', 'kenlm4', 'kenlm5', 'swf', 'png5', 'png2', 'tyto', 'occ1', 'occ2']
-includedList = ['hml', 'lm2', 'lm3', 'lm4', 'lm5', 'lm7', 'swf', 'png5', 'png2', 'tyto', 'klm5']
+includedList = ['lm2', 'lm3', 'lm4', 'lm5', 'lm7', 'swf','png2', 'png5', 'tyto', 'klm4', 'klm5']
 
 def getFeatures(trainFileName):
     file = trainFileName
@@ -83,7 +83,7 @@ def getFeatures(trainFileName):
     if 'klm4' in includedList:
         logging.debug("Creating the min kenlm5 feature")
         kenlm4feature = klm.getFeature(file, 'kenlm-4gram.bin')
-        featuresSet = stackFeature(featuresSet, kenlm5feature, 'single')
+        featuresSet = stackFeature(featuresSet, kenlm4feature, 'single')
         saveObj(kenlm4feature, '/tmp/klm4')
     if 'klm5' in includedList:
         logging.debug("Creating the min kenlm5 feature")
@@ -109,10 +109,10 @@ def getFeatures(trainFileName):
         logging.debug("Creating the min pcgfscore feature")
         minpcfgscorefeature = mPCFG.getFeature(file)
         featuresSet = stackFeature(featuresSet, minpcfgscorefeature, 'single')
-    if 'klm4' in includedList:
-        logging.debug("Creating the min kenlm4 feature")
-        kenlm4feature = klm.getFeature(file, 'kenlm-4gram.bin')
-        featuresSet = stackFeature(featuresSet, kenlm4feature, 'single')
+    # if 'klm4' in includedList:
+    #     logging.debug("Creating the min kenlm4 feature")
+    #     kenlm4feature = klm.getFeature(file, 'kenlm-4gram.bin')
+    #     featuresSet = stackFeature(featuresSet, kenlm4feature, 'single')
     return featuresSet
 
 def getFakeGood(labelsFileName):
@@ -172,13 +172,24 @@ def main():
     testX = getFeatures(testSetFileName )
     saveObj(testX, '/tmp/testX')
     numberOfArticles = testX.shape[0]
-    bdt = loadObj('adaBoostTrained93.model')
+    bdt = loadObj('logRegTrained955.model')
+#    bdt = loadObj('adaBoostTrained93.model')
     predicted = bdt.predict(testX)
+    probabilities = bdt.predict_proba(testX)
+
+    # with open(testOutputFileNAme, 'w') as f:
+    #     for i in range(0,numberOfArticles):
+    #         strP = "%s\n" % str(predicted[i])
+    #         f.write(strP)
+
 
     with open(testOutputFileNAme, 'w') as f:
-        for i in range(0,numberOfArticles):
-            strP = "%s\n" % str(predicted[i])
-            f.write(strP)
+        i = 0
+        for prob in probabilities:
+            stringToPrint = "%f %f %s\n" % (prob[0], prob[1], predicted[i])
+            f.write(stringToPrint)
+            i += 1
+
 
     devLabels = np.asarray(getFakeGood('developmentSetLabels.dat'))
     accuracy = accuracy_score(devLabels, predicted)

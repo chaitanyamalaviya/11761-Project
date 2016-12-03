@@ -6,7 +6,6 @@ import sys
 
 import numpy as np
 
-
 def importScores(fileName):
     articlesList = []
     scoresList = []
@@ -45,10 +44,11 @@ def computeArticlesAverageScore(articles, scores, threshold):
     print("Number of articles with score less than %d: %d" % (threshold, count))
     print("Average on all articles: %f" % (avAverage / len(articles)))
 
-
 def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScores, labels):
     g = 0
     b = 0
+    good = open('goodscoresAvg.txt', 'w')
+    bad = open('badscoresAvg.txt', 'w')
     pcfgScoresFeature = []
     for label in labels:
         length = 0
@@ -60,6 +60,7 @@ def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScore
                 articleScores.append(sentenceScore)
             articleScores = [s / float(length) for s in articleScores]
             pcfgScoresFeature.append(sum(articleScores))
+            bad.write("%s\n" % sum(articleScores))
             b += 1
         if label == 1:
             for i in range(len(goodArticles[g])):
@@ -68,6 +69,7 @@ def createFeatureFromScoresFiles(badArticles, goodArticles, badScores, goodScore
                 articleScores.append(sentenceScore)
             articleScores = [s / float(length) for s in articleScores]
             pcfgScoresFeature.append(sum(articleScores))
+            good.write("%s\n" % sum(articleScores))
             g += 1
     return pcfgScoresFeature
 
@@ -91,7 +93,6 @@ def getFileNames(devFileName):
         goodArticlesFileName = 'goodArticlesDevelopment.txt'
         badArticlesFileName = 'badArticlesDevelopment.txt'
     return labelsFileName, goodArticlesFileName, badArticlesFileName
-
 
 def getFeature(devFileName):
     featureList = []
@@ -124,6 +125,7 @@ def main():
 
     goodArticles, goodScores = importScores(goodArticlesFileName)
     badArticles, badScores = importScores(badArticlesFileName)
+    print getFeature('trainingSet.dat')
 
     computeArticlesAverageScore(goodArticles, goodScores, threshold)
     computeArticlesAverageScore(badArticles, badScores, threshold)

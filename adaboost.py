@@ -26,7 +26,8 @@ def saveObj(obj, name):
 
 
 # ['pcfg', 'mpcfg', 'occ2']
-excludedList = ['klm4', 'pcfg', 'mpcfg', 'occ2', 'occ1', 'lm7']
+excludedList = ['pcfg', 'mpcfg', 'occ2', 'occ1']
+#excludedList = ['occ1', 'occ2', 'tyto', 'hml', "klm4", "klm5", "lm3", "lm4", "lm5", "lm7", "png2", "png5","swf"]
 
 
 def importSingleFeatures(datasetPath):
@@ -148,11 +149,19 @@ def importArrayFeatures(datasetPath):
 
 def buildFeatures(datasetPath):
     singleFeaturesTrain, singleFeaturesDev = importSingleFeatures(datasetPath)
-    multipleFeaturesTrain, multipleFeaturesDev = importMultipleFeatures(datasetPath)
+#    multipleFeaturesTrain, multipleFeaturesDev = importMultipleFeatures(datasetPath)
     arrayFeaturesTrain, arrayFeaturesDev = importArrayFeatures(datasetPath)
 
-    featuresTrain = np.column_stack((singleFeaturesTrain, multipleFeaturesTrain, arrayFeaturesTrain))
-    featuresDev = np.column_stack((singleFeaturesDev, multipleFeaturesDev, arrayFeaturesDev))
+    # featuresTrain = np.column_stack((singleFeaturesTrain, multipleFeaturesTrain, arrayFeaturesTrain))
+    # featuresDev = np.column_stack((singleFeaturesDev, multipleFeaturesDev, arrayFeaturesDev))
+    featuresTrain = np.column_stack((singleFeaturesTrain, arrayFeaturesTrain))
+    featuresDev = np.column_stack((singleFeaturesDev, arrayFeaturesDev))
+
+    #featuresTrain = np.column_stack((singleFeaturesTrain))
+    #featuresDev = np.column_stack((singleFeaturesDev))
+
+#    return singleFeaturesTrain, singleFeaturesDev
+#    return arrayFeaturesTrain, arrayFeaturesDev
     return featuresTrain, featuresDev
 
 def loadObj(name):
@@ -179,8 +188,8 @@ def adaBoostClassifier(X, Y, devX, devLabels):
             strP = "%s\n" % str(predicted[i])
             f.write(strP)
     accuracy = accuracy_score(devLabels, predicted)
-    print(bdt.predict_log_proba(X))
-    print(bdt.predict_proba(X))
+    #print(bdt.predict_log_proba(X))
+    print(bdt.predict_proba(devX))
     saveObj(bdt, 'adaBoostTrained93.model')
     print("Accuracy AdaBoost Classifier: %f" % accuracy)
 
@@ -189,18 +198,28 @@ def logisticRegression(X, Y, devX, devLabels):
     logreg.fit(X, Y)
     logreg_predictions = logreg.predict(devX)
     accuracy = accuracy_score(devLabels, logreg_predictions)
+    saveObj(logreg, 'logRegTrained955.model')
+    probabilities = logreg.predict_proba(devX)
     print("Accuracy LogReg Classifier: %f" % accuracy)
+    return logreg_predictions, probabilities
 
 def main():
-    featuresTrain, featuresDev = buildFeatures('set1')
-    saveObj(featuresDev, '/tmp/featureSet')
-    labels = np.asarray(getFakeGood('expandedTrainingSetLabels2.txt'))
+    featuresTrain, featuresDev = buildFeatures('largeset')
+    #saveObj(featuresDev, '/tmp/featureSet')
+    labels = np.asarray(getFakeGood('expandedTrainingSetLabels.txt'))
     devLabels = np.asarray(getFakeGood('developmentSetLabels.dat'))
     X = featuresTrain
     Y = labels
     devX = featuresDev
     adaBoostClassifier(X, Y, devX, devLabels )
-    logisticRegression(X, Y, devX, devLabels )
+    predictions, probabilities = logisticRegression(X, Y, devX, devLabels )
+
+    # i = 0
+    # for prob in probabilities:
+    #     print("%f %f %s" % (prob[0], prob[1], predictions[i]))
+    #     i += 1
+
+
 
 #    adaBoostClassifier(X, Y, X, labels )
 #    logisticRegression(X, Y, X, labels )
